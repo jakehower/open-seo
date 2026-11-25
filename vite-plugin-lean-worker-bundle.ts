@@ -167,7 +167,7 @@ export function leanWorkerBundle(): Plugin {
       let denylist: typeof EAGER_DENYLIST;
       if (environment === "client") {
         denylist = CLIENT_ENTRY_DENYLIST;
-      } else if (["ssr", "open_seo_audit"].includes(environment)) {
+      } else if (["ssr", "open_seo_audit", "openseo_audit"].includes(environment)) {
         denylist = EAGER_DENYLIST.filter(
           (rule) => !standalone || !rule.requiresCodeSplitting,
         );

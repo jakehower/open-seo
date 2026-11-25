@@ -36,6 +36,42 @@ function getValidatedTeamDomain(teamDomain: string) {
   return result.origin;
 }
 
+function parseAllowedServiceTokenIds(raw: string | undefined): Set<string> {
+  if (!raw) return new Set();
+  return new Set(
+    raw
+      .split(",")
+      .map((entry) => entry.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
+function resolveServiceTokenIdentity(payload: JWTPayload): {
+  userId: string;
+  userEmail: string;
+} {
+  const commonName =
+    typeof payload.common_name === "string"
+      ? payload.common_name.trim().toLowerCase()
+      : null;
+  const allowlist = parseAllowedServiceTokenIds(env.SERVICE_TOKEN_CLIENT_IDS);
+
+  if (!commonName || !allowlist.has(commonName)) {
+    throw new AppError("UNAUTHENTICATED");
+  }
+
+  const tokenKey = commonName.replace(/\.access$/i, "");
+  if (!tokenKey) {
+    throw new AppError("UNAUTHENTICATED");
+  }
+
+  const userId = `svc-${tokenKey}`;
+  return {
+    userId,
+    userEmail: `${userId}@service.invalid`,
+  };
+}
+
 export async function resolveCloudflareAccessContext(
   headers: Headers,
 ): Promise<EnsuredUserContext> {
@@ -90,9 +126,13 @@ export async function resolveCloudflareAccessContext(
   const userId = typeof payload.sub === "string" ? payload.sub : null;
   const userEmail = typeof payload.email === "string" ? payload.email : null;
 
-  if (!userId || !userEmail) {
-    throw new AppError("UNAUTHENTICATED");
+  if (userId && userEmail) {
+    return resolveSharedWorkspaceContext(userId, userEmail);
   }
 
-  return resolveSharedWorkspaceContext(userId, userEmail);
+  const serviceIdentity = resolveServiceTokenIdentity(payload);
+  return resolveSharedWorkspaceContext(
+    serviceIdentity.userId,
+    serviceIdentity.userEmail,
+  );
 }

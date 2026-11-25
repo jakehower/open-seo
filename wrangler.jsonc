@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "open-seo",
+  "name": "openseo",
   "main": "src/server.ts",
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -31,7 +31,7 @@
       "name": "site-audit-workflow",
       "binding": "SITE_AUDIT_WORKFLOW",
       "class_name": "SiteAuditWorkflow",
-      "script_name": "open-seo-audit",
+      "script_name": "openseo-audit",
     },
     {
       "name": "rank-check-workflow",
@@ -70,7 +70,7 @@
   "services": [
     {
       "binding": "AUDIT_ENGINE",
-      "service": "open-seo-audit",
+      "service": "openseo-audit",
     },
   ],
   "migrations": [
@@ -118,21 +118,27 @@
   // filenames (.wrangler/state, a persistent volume in Docker self-hosts)
   // from an HMAC of `id`/`database_id`. Changing them orphans every existing
   // local and self-hosted database. Leave them as-is.
+  "vars": {
+    "AUTH_MODE": "cloudflare_access",
+    "DATABASE_PROVIDER": "d1",
+    "TEAM_DOMAIN": "https://jakehower.cloudflareaccess.com",
+    "SERVICE_TOKEN_CLIENT_IDS": "6e21aa2d5f0a170c0d0ee9d3872e46cf.access",
+  },
   "kv_namespaces": [
     {
       "binding": "KV",
-      "id": "4abd52f3f2c549ac83cc2cb4ceec8620",
+      "id": "fcfd6934eb2944f9bffb93410abe97c7",
     },
     {
       "binding": "OAUTH_KV",
-      "id": "bd1759494309474a9b423b029967b0db",
+      "id": "c9c1c9e7d50e46b5a9a384a689dc7df2",
     },
   ],
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "open-seo",
-      "database_id": "37bee90a-e1aa-404f-b01e-b0d1d479bda1",
+      "database_name": "openseo-db",
+      "database_id": "69df84ad-64d7-4c56-b1a4-13f24848b601",
       "migrations_dir": "drizzle/sqlite",
     },
   ],
@@ -154,7 +160,7 @@
   // ],
   "r2_buckets": [
     {
-      "bucket_name": "open-seo",
+      "bucket_name": "openseo-r2",
       "binding": "R2",
     },
   ],
